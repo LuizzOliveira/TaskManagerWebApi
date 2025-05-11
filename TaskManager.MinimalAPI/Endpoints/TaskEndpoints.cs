@@ -14,7 +14,7 @@ public static class TaskEndpoints
                .WithDescription("Tasks Manager");
 
         root.MapGet("", async (TaskManagerDb db) =>
-            await db.TasksEntity.OrderBy(x => x.Name).ToListAsync());
+            await db.TasksEntity.OrderBy(x => x.Name).Select(x => x).ToListAsync());
 
         root.MapGet("{id}", async (string id, TaskManagerDb db) =>
             await db.TasksEntity.FindAsync(id) is TasksEntity task

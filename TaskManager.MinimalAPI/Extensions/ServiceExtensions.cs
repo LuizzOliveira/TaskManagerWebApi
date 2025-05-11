@@ -7,8 +7,7 @@ public static class ServiceExtensions
 {
     public static void AddServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddDbContext<TaskManagerDb>(options =>
-            options.UseInMemoryDatabase("TaskManagerDb"));
+        builder.Services.AddDbContext<TaskManagerDb>();
 
         builder.Services.AddEndpointsApiExplorer();
 
