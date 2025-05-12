@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TaskManager.Infrastructure.Data;
+﻿using TaskManager.Infrastructure.Data;
 
 namespace TaskManager.API.Extensions;
 

@@ -8,7 +8,7 @@ public class GetTaskByIdUseCase(TaskManagerDb db) : IGetTaskByIdUseCase
 {
     private readonly TaskManagerDb _db = db;
 
-    public async Task<TaskDetailsDto?> ExecuteAsync(string id)
+    public async Task<TaskDetailsDto?> ExecuteAsync(long id)
     {
         var task = await _db.TasksEntity
             .AsNoTracking()

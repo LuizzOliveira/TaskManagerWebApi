@@ -1,9 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TaskManager.Domain.DTOs.Request;
+﻿using TaskManager.Domain.DTOs.Request;
 using TaskManager.Domain.DTOs.Response;
-using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces.UseCase;
-using TaskManager.Infrastructure.Data;
 
 namespace TaskManager.API.Endpoints;
 public static class TaskEndpoints
@@ -27,7 +24,7 @@ public static class TaskEndpoints
         .WithOpenApi();
 
         root.MapGet("{id}", async (
-            string id, IGetTaskByIdUseCase useCase
+            long id, IGetTaskByIdUseCase useCase
             ) =>
         {
             var result = await useCase.ExecuteAsync(id);

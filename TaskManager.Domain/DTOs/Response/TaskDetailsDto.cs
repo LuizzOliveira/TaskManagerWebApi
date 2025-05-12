@@ -1,6 +1,6 @@
 ﻿namespace TaskManager.Domain.DTOs.Response;
 public record TaskDetailsDto(
-    string Id,
+    long Id,
     string Name,
     string Description,
     string Completed,
