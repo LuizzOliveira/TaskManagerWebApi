@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskManager.Domain.DTOs;
+using TaskManager.Domain.DTOs.Response;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces.UseCase;
 using TaskManager.Infrastructure.Data;
@@ -10,80 +11,100 @@ public static class TaskEndpoints
     public static WebApplication MapTaskEndpoints(this WebApplication app)
     {
         var root = app.MapGroup("/task")
-               .WithTags("Tasks")
-               .WithDescription("Tasks Manager");
+            .WithTags("Tasks")
+            .WithDescription("Tasks Manager");
 
-        root.MapGet("", async (TaskManagerDb db) =>
-            await db.TasksEntity.OrderBy(x => x.Name).Select(x => x).ToListAsync());
+        root.MapGet("", async (IGetAllTasksUseCase useCase) =>
+        {
+            var tasks = await useCase.ExecuteAsync();
+            return Results.Ok(tasks);
+        })
+        .WithName("GetAllTasks")
+        .WithSummary("Get all tasks")
+        .WithDescription("Retrieves a list of all registered tasks with their status.")
+        .Produces<List<TaskResponseDto>>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status500InternalServerError)
+        .WithOpenApi();
 
-        root.MapGet("{id}", async (string id, TaskManagerDb db) =>
-            await db.TasksEntity.FindAsync(id) is TasksEntity task
-            ? Results.Ok(task)
-            : Results.NotFound());
+        root.MapGet("{id}", async (
+            string id, IGetTaskByIdUseCase useCase
+            ) =>
+        {
+            var result = await useCase.ExecuteAsync(id);
+
+            return result is null
+                ? Results.NotFound()
+                : Results.Ok(result);
+        })
+        .WithName("GetTaskById")
+        .WithSummary("Busca tarefa por ID")
+        .WithDescription("Retorna os detalhes de uma tarefa específica usando seu ID.")
+        .Produces<TaskDetailsDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .WithOpenApi();
+
 
         root.MapPost("/create", async (
-                TaskInfoDto taskInfoDto,
-                ICreateTaskUseCase useCase) =>
+            TaskInfoDto taskInfoDto,
+            ICreateTaskUseCase useCase
+            ) =>
         {
-            if (string.IsNullOrWhiteSpace(taskInfoDto.Name) || string.IsNullOrWhiteSpace(taskInfoDto.Description))
-            {
-                return Results.BadRequest("Name and Description are required.");
-            }
-
             var createdTask = await useCase.ExecuteAsync(taskInfoDto);
-            return Results.Created($"/task/{createdTask.Name}", createdTask);
+            return Results.Created($"/task/{createdTask.Id}", createdTask);
         })
         .WithName("CreateTask")
         .WithSummary("Create a new task")
         .WithDescription("Creates a task with the provided name and description.")
-        .Produces<TaskInfoDto>(StatusCodes.Status201Created)
+        .Produces<TaskDetailsDto>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest)
         .WithOpenApi();
 
-        root.MapPut("/update/{id}", async (string id, TaskInfoDto taskInfoDto, TaskManagerDb db) =>
+        root.MapPut("/update/{id}", async (
+            string id,
+            TaskInfoDto taskInfoDto,
+            IUpdateTaskUseCase useCase
+            ) =>
         {
-            var task = await db.TasksEntity.FindAsync(id);
+            var result = await useCase.ExecuteAsync(id, taskInfoDto);
 
-            if (task is null)
-                return Results.NotFound();
+            return result ? Results.NoContent() : Results.NotFound();
+        })
+        .WithName("UpdateTask")
+        .WithSummary("Update a task")
+        .WithDescription("Updates an existing task by ID with the provided name and description.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .WithOpenApi();
 
-            task.UpdateTasks(
-                taskInfoDto.Name,
-                taskInfoDto.Description);
-
-            await db.SaveChangesAsync();
-
-            return Results.NoContent();
-        });
-
-        root.MapPut("/completed/{name}", async (string name, TaskManagerDb db) =>
+        root.MapPut("/completed/{name}", async (
+            string name,
+            ICompleteTaskUseCase useCase
+            ) =>
         {
-            var task = await db.TasksEntity
-                .FirstOrDefaultAsync(t => t.Name != null && t.Name.ToLower().Contains(name.ToLower()));
+            var result = await useCase.ExecuteAsync(name);
 
-            if (task is null)
-                return Results.NotFound();
+            return result ? Results.NoContent() : Results.NotFound();
+        })
+        .WithName("CompleteTask")
+        .WithSummary("Mark task as completed")
+        .WithDescription("Marks the task as completed by searching with name.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .WithOpenApi();
 
-            task.UpdateCompletedTasks();
-
-            await db.SaveChangesAsync();
-
-            return Results.NoContent();
-        });
-
-        root.MapDelete("/delete/{id}", async (string id, TaskManagerDb db) =>
+        root.MapDelete("/delete/{id}", async (
+            string id,
+            IDeleteTaskUseCase useCase) =>
         {
-            var task = await db.TasksEntity.FindAsync(id);
-
-            if (task is null)
-                return Results.NotFound();
-
-            db.TasksEntity.Remove(task);
-
-            await db.SaveChangesAsync();
-
-            return Results.NoContent();
-        });
+            var deleted = await useCase.ExecuteAsync(id);
+            return deleted ? Results.NoContent() : Results.NotFound();
+        })
+        .WithName("DeleteTask")
+        .WithSummary("Delete task by ID")
+        .WithDescription("Deletes a task by its unique identifier.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .WithOpenApi();
 
         return app;
     }
