@@ -1,7 +1,8 @@
-﻿using TaskManager.Domain.DTOs;
+﻿using TaskManager.Domain.DTOs.Request;
+using TaskManager.Domain.DTOs.Response;
 
 namespace TaskManager.Domain.Interfaces.UseCase;
 public interface ICreateTaskUseCase
 {
-    Task<TaskInfoDto> ExecuteAsync(TaskInfoDto taskInfoDto);
+    Task<ResponseTaskInfoDto> ExecuteAsync(RequestTaskInfoDto taskInfoDto);
 }

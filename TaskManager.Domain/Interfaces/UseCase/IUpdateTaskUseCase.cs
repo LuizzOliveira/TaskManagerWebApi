@@ -1,7 +1,7 @@
-﻿using TaskManager.Domain.DTOs;
+﻿using TaskManager.Domain.DTOs.Request;
 
 namespace TaskManager.Domain.Interfaces.UseCase;
 public interface IUpdateTaskUseCase
 {
-    Task<bool> ExecuteAsync(string id, TaskInfoDto dto);
+    Task<bool> ExecuteAsync(string id, RequestTaskInfoDto dto);
 }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TaskManager.Domain.DTOs;
+using TaskManager.Domain.DTOs.Request;
 using TaskManager.Domain.DTOs.Response;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces.UseCase;
@@ -45,13 +45,14 @@ public static class TaskEndpoints
 
 
         root.MapPost("/create", async (
-            TaskInfoDto taskInfoDto,
+            RequestTaskInfoDto taskInfoDto,
             ICreateTaskUseCase useCase
             ) =>
         {
             var createdTask = await useCase.ExecuteAsync(taskInfoDto);
-            return Results.Created($"/task/{createdTask.Id}", createdTask);
+            return Results.Created($"/tasks/{createdTask.Id}", createdTask);
         })
+
         .WithName("CreateTask")
         .WithSummary("Create a new task")
         .WithDescription("Creates a task with the provided name and description.")
@@ -61,7 +62,7 @@ public static class TaskEndpoints
 
         root.MapPut("/update/{id}", async (
             string id,
-            TaskInfoDto taskInfoDto,
+            RequestTaskInfoDto taskInfoDto,
             IUpdateTaskUseCase useCase
             ) =>
         {

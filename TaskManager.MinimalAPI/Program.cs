@@ -4,16 +4,15 @@ using TaskManager.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServices();
+builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.AddServices();
 builder.Services
-    .AddUseCases()
-    .AddInfrastructure(builder.Configuration);
+    .AddUseCases();
 
 var app = builder.Build();
 
 app.AddEndpoints();
-
 app.UseServices();
 
 app.Run();
