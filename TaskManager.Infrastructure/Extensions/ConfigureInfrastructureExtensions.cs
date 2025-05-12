@@ -14,6 +14,12 @@ public static class ConfigureInfrastructureExtensions
         services.AddDbContext<TaskManagerDb>(options =>
         {
             var typeDatabase = configuration["TypeDatabase"];
+
+            if (string.IsNullOrEmpty(typeDatabase))
+            {
+                throw new ArgumentNullException(nameof(typeDatabase), "TypeDatabase is not configured.");
+            }
+
             var connectionString = configuration.GetConnectionString(typeDatabase);
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         });
