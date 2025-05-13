@@ -9,14 +9,21 @@ public class CompleteTaskUseCase(TaskManagerDb context) : ICompleteTaskUseCase
 
     public async Task<bool> ExecuteAsync(string name)
     {
-        var task = await _context.TasksEntity
-            .FirstOrDefaultAsync(t => t.Name != null && t.Name.ToLower()
-            .Contains(name
-                .ToLower()));
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
 
-        if (task is null) return false;
+        var nameToSearch = name.ToLower();
+
+        var task = await _context.TasksEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Name != null && t.Name.ToLower().Contains(nameToSearch));
+
+        if (task is null)
+            return false;
 
         task.UpdateCompletedTasks(true);
+
+        _context.TasksEntity.Update(task);
         await _context.SaveChangesAsync();
 
         return true;

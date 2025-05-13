@@ -74,7 +74,7 @@ public static class TaskEndpoints
         .Produces(StatusCodes.Status404NotFound)
         .WithOpenApi();
 
-        root.MapPut("/completed/{name}", async (
+        root.MapPatch("/completed/{name}", async (
             string name,
             ICompleteTaskUseCase useCase
             ) =>
