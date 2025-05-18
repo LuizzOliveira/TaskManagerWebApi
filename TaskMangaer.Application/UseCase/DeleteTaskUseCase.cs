@@ -1,19 +1,24 @@
-﻿using TaskManager.Domain.Interfaces.UseCase;
-using TaskManager.Infrastructure.Data;
+﻿using TaskManager.Domain.Interfaces.Repository;
+using TaskManager.Domain.Interfaces.UseCase;
 
 namespace TaskManager.Application.UseCase;
-public class DeleteTaskUseCase(TaskManagerDb context) : IDeleteTaskUseCase
+public class DeleteTaskUseCase(
+    ITaskRepository repository
+    ) : IDeleteTaskUseCase
 {
-    private readonly TaskManagerDb _context = context;
-
-    public async Task<bool> ExecuteAsync(string id)
+    public async Task<bool> ExecuteAsync(
+        long id, 
+        CancellationToken ct
+        )
     {
-        var task = await _context.TasksEntity.FindAsync(id);
+        var task = await repository.GetByIdAsync(id, ct);
         if (task is null)
             return false;
 
-        _context.TasksEntity.Remove(task);
-        await _context.SaveChangesAsync();
+        await repository.DeleteAsync(task, ct);
+
+        await repository.SaveChangesAsync(ct);
+
         return true;
     }
 }

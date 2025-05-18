@@ -3,6 +3,6 @@
 namespace TaskManager.Domain.Interfaces.UseCase;
 public interface IGetTaskByIdUseCase
 {
-    Task<TaskDetailsDto?> ExecuteAsync(long id);
+    Task<TaskDetailsDto?> ExecuteAsync(long id, CancellationToken ct);
 }
 

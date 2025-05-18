@@ -1,18 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TaskManager.Domain.DTOs.Response;
+﻿using TaskManager.Domain.DTOs.Response;
+using TaskManager.Domain.Interfaces.Repository;
 using TaskManager.Domain.Interfaces.UseCase;
-using TaskManager.Infrastructure.Data;
 
 namespace TaskManager.Application.UseCase;
-public class GetTaskByIdUseCase(TaskManagerDb db) : IGetTaskByIdUseCase
+public class GetTaskByIdUseCase(
+    ITaskRepository repository
+    ) : IGetTaskByIdUseCase
 {
-    private readonly TaskManagerDb _db = db;
-
-    public async Task<TaskDetailsDto?> ExecuteAsync(long id)
+    public async Task<TaskDetailsDto?> ExecuteAsync(
+        long id,
+        CancellationToken ct
+        )
     {
-        var task = await _db.TasksEntity
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var task = await repository.GetByIdAsync(id, ct);
 
         if (task is null) return null;
 

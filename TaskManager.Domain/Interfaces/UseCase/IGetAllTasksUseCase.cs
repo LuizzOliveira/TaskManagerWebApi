@@ -4,6 +4,6 @@ namespace TaskManager.Domain.Interfaces.UseCase;
 
 public interface IGetAllTasksUseCase
 {
-    Task<IEnumerable<TaskResponseDto>> ExecuteAsync();
+    Task<IEnumerable<TaskResponseDto>> ExecuteAsync(CancellationToken ct);
 }
 

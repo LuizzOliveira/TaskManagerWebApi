@@ -1,4 +1,5 @@
-﻿using TaskManager.Domain.DTOs.Request;
+﻿using Microsoft.AspNetCore.Mvc;
+using TaskManager.Domain.DTOs.Request;
 using TaskManager.Domain.DTOs.Response;
 using TaskManager.Domain.Interfaces.UseCase;
 
@@ -11,29 +12,31 @@ public static class TaskEndpoints
             .WithTags("Tasks")
             .WithDescription("Tasks Manager");
 
-        root.MapGet("", async (IGetAllTasksUseCase useCase) =>
+        root.MapGet("", async (
+            IGetAllTasksUseCase useCase, 
+            CancellationToken ct 
+            ) =>
         {
-            var tasks = await useCase.ExecuteAsync();
+            var tasks = await useCase.ExecuteAsync(ct);
             return Results.Ok(tasks);
         })
-        .WithName("GetAllTasks")
         .WithSummary("Get all tasks")
         .WithDescription("Retrieves a list of all registered tasks with their status.")
-        .Produces<List<TaskResponseDto>>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status500InternalServerError)
+        .Produces<IEnumerable<TaskResponseDto>>(StatusCodes.Status200OK)
         .WithOpenApi();
 
         root.MapGet("{id}", async (
-            long id, IGetTaskByIdUseCase useCase
+            [FromRoute] long id, 
+            IGetTaskByIdUseCase useCase,
+            CancellationToken ct
             ) =>
         {
-            var result = await useCase.ExecuteAsync(id);
+            var result = await useCase.ExecuteAsync(id, ct);
 
             return result is null
                 ? Results.NotFound()
                 : Results.Ok(result);
         })
-        .WithName("GetTaskById")
         .WithSummary("Busca tarefa por ID")
         .WithDescription("Retorna os detalhes de uma tarefa específica usando seu ID.")
         .Produces<TaskDetailsDto>(StatusCodes.Status200OK)
@@ -42,15 +45,14 @@ public static class TaskEndpoints
 
 
         root.MapPost("/create", async (
-            RequestTaskInfoDto taskInfoDto,
-            ICreateTaskUseCase useCase
+            [FromBody] RequestTaskInfoDto taskInfoDto,
+            ICreateTaskUseCase useCase,
+            CancellationToken ct
             ) =>
         {
-            var createdTask = await useCase.ExecuteAsync(taskInfoDto);
+            var createdTask = await useCase.ExecuteAsync(taskInfoDto, ct);
             return Results.Created($"/tasks/{createdTask.Id}", createdTask);
         })
-
-        .WithName("CreateTask")
         .WithSummary("Create a new task")
         .WithDescription("Creates a task with the provided name and description.")
         .Produces<TaskDetailsDto>(StatusCodes.Status201Created)
@@ -58,46 +60,50 @@ public static class TaskEndpoints
         .WithOpenApi();
 
         root.MapPut("/update/{id}", async (
-            string id,
-            RequestTaskInfoDto taskInfoDto,
-            IUpdateTaskUseCase useCase
+            [FromRoute] long id,
+            [FromBody] RequestTaskInfoDto taskInfoDto,
+            IUpdateTaskUseCase useCase,
+            CancellationToken ct
             ) =>
         {
-            var result = await useCase.ExecuteAsync(id, taskInfoDto);
+            var result = await useCase.ExecuteAsync(id, taskInfoDto, ct);
 
             return result ? Results.NoContent() : Results.NotFound();
         })
-        .WithName("UpdateTask")
         .WithSummary("Update a task")
         .WithDescription("Updates an existing task by ID with the provided name and description.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .WithOpenApi();
 
-        root.MapPatch("/completed/{name}", async (
-            string name,
-            ICompleteTaskUseCase useCase
+        root.MapPatch("/completed", async (
+            [FromQuery] string name,
+            ICompleteTaskUseCase useCase,
+            CancellationToken ct
             ) =>
         {
-            var result = await useCase.ExecuteAsync(name);
+            var result = await useCase.ExecuteAsync(name, ct);
 
-            return result ? Results.NoContent() : Results.NotFound();
+            return result
+                ? Results.Ok("Task completed")
+                : Results.NotFound();
         })
-        .WithName("CompleteTask")
         .WithSummary("Mark task as completed")
         .WithDescription("Marks the task as completed by searching with name.")
-        .Produces(StatusCodes.Status204NoContent)
+        .Produces<string>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
         .WithOpenApi();
 
-        root.MapDelete("/delete/{id}", async (
-            string id,
-            IDeleteTaskUseCase useCase) =>
+
+        root.MapDelete("/delete", async (
+            [FromQuery] long id,
+            IDeleteTaskUseCase useCase,
+            CancellationToken ct
+            ) =>
         {
-            var deleted = await useCase.ExecuteAsync(id);
+            var deleted = await useCase.ExecuteAsync(id, ct);
             return deleted ? Results.NoContent() : Results.NotFound();
         })
-        .WithName("DeleteTask")
         .WithSummary("Delete task by ID")
         .WithDescription("Deletes a task by its unique identifier.")
         .Produces(StatusCodes.Status204NoContent)

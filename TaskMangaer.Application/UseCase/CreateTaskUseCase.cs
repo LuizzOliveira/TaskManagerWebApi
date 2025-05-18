@@ -10,14 +10,16 @@ public class CreateTaskUseCase(
     ITaskRepository repository
     ) : ICreateTaskUseCase
 {
-    private readonly ITaskRepository _repository = repository;
-
-    public async Task<ResponseTaskInfoDto> ExecuteAsync(RequestTaskInfoDto taskInfoDto)
+    public async Task<ResponseTaskInfoDto> ExecuteAsync(
+        RequestTaskInfoDto taskInfoDto,
+        CancellationToken ct
+        )
     {
-        var task = new TasksEntity(taskInfoDto.Name, taskInfoDto.Description, DateTime.UtcNow);
+        var task = TasksEntity.Create(taskInfoDto.Name, taskInfoDto.Description);
 
-        await _repository.AddAsync(task);
-        await _repository.SaveChangesAsync();
+        await repository.AddAsync(task, ct);
+
+        await repository.SaveChangesAsync(ct);
 
         return new ResponseTaskInfoDto(task.Id, task.Name!, task.Description!);  
     }

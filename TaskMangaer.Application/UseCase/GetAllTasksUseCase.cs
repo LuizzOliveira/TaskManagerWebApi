@@ -1,25 +1,28 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TaskManager.Domain.DTOs.Response;
+﻿using TaskManager.Domain.DTOs.Response;
+using TaskManager.Domain.Interfaces.Repository;
 using TaskManager.Domain.Interfaces.UseCase;
-using TaskManager.Infrastructure.Data;
 
 namespace TaskManager.Application.UseCase;
-public class GetAllTasksUseCase(TaskManagerDb db) : IGetAllTasksUseCase
+public class GetAllTasksUseCase(
+    ITaskRepository repository
+    ) : IGetAllTasksUseCase
 {
-    private readonly TaskManagerDb _db = db;
-
-    public async Task<IEnumerable<TaskResponseDto>> ExecuteAsync()
+    public async Task<IEnumerable<TaskResponseDto>> ExecuteAsync(
+        CancellationToken ct
+        )
     {
-        return await _db.TasksEntity
-            .OrderBy(t => t.Name)
-            .Select(t => new TaskResponseDto(
-                t.Id,
-                t.Name,
-                t.Description,
-                t.Completed.ToString(),
-                t.DateRegistration,
-                t.DateCompleted
-            ))
-            .ToListAsync();
+        var tasks = await repository.GetAllAsync(ct);
+
+        if (tasks is null || !tasks.Any())
+            return [];
+
+        return tasks.Select(t => new TaskResponseDto(
+            t.Id,
+            t.Name,
+            t.Description,
+            t.Completed.ToString(),
+            t.DateRegistration,
+            t.DateCompleted
+        ));
     }
 }

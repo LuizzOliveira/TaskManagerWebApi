@@ -9,7 +9,10 @@ using TaskManager.Infrastructure.Repository;
 namespace TaskManager.Infrastructure.Extensions;
 public static class ConfigureInfrastructureExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services, 
+        IConfiguration configuration
+        )
     {
         services.AddDbContext<TaskManagerDb>(options =>
         {
@@ -23,7 +26,6 @@ public static class ConfigureInfrastructureExtensions
             var connectionString = configuration.GetConnectionString(typeDatabase);
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         });
-
 
         services.AddScoped<ITaskRepository, TaskRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();

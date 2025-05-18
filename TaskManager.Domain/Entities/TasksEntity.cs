@@ -9,18 +9,13 @@ public class TasksEntity
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id { get; private set; }
-
     public string? Name { get; private set; }
-
     public string? Description { get; private set; }
 
     [Column(TypeName = "varchar(20)")]
     public ETaskStatus Completed { get; private set; }
-
     public DateTime DateRegistration { get; private set; }
-
     public DateTime? DateCompleted { get; private set; }
-
     protected TasksEntity() { }
 
     [NotMapped]
@@ -46,5 +41,10 @@ public class TasksEntity
 
         Completed = completed.Value ? ETaskStatus.Complete : ETaskStatus.Incomplete;
         DateCompleted = completed.Value ? DateTime.Now : null;
+    }
+
+    public static TasksEntity Create(string name, string? description)
+    {
+        return new TasksEntity(name, description, DateTime.UtcNow);
     }
 }

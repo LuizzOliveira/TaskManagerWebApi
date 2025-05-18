@@ -3,5 +3,5 @@
 namespace TaskManager.Domain.Interfaces.UseCase;
 public interface IUpdateTaskUseCase
 {
-    Task<bool> ExecuteAsync(string id, RequestTaskInfoDto dto);
+    Task<bool> ExecuteAsync(long id, RequestTaskInfoDto dto, CancellationToken ct);
 }
